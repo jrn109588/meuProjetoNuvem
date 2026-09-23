@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PontoEletrônico - Controle de Jornada</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Google Fonts Inter -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+
+    </style>
+  </head>
+  <body
+    class="h-full bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200 flex flex-col"
+  >
+    <header
+      class="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center space-x-3">
+          <div
+            class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md flex items-center justify-center"
+          >
+            <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight tracking-tight">
+              Ponto<span class="text-blue-600 dark:text-blue-400">Smart</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Controle de Jornada Ágil
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <!-- Theme Toggle Button -->
+          <button
+            id="theme-toggle"
+            class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all focus:outline-none"
+          >
+            <i id="theme-icon" class="fa-solid fa-moon text-lg"></i>
+          </button>
+
+          <!-- Quick Settings Button -->
+          <button
+            onclick="openSettingsModal()"
+            class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all focus:outline-none"
+          >
+            <i class="fa-solid fa-gear text-lg"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6"
+    >
+      <!-- Top Banner: Realtime Clock & Summary Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Clock Card -->
+        <div
+          class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden"
+        >
+          <div class="absolute -right-6 -bottom-6 opacity-10 text-9xl">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <span
+                class="text-xs uppercase tracking-wider font-semibold bg-blue-500/40 px-3 py-1 rounded-full text-blue-100"
+                >Horário Oficial</span
+              >
+              <span id="current-date" class="text-sm font-medium text-blue-100"
+                >--/--/----</span
+              >
+            </div>
+            <div
+              id="current-time"
+              class="text-4xl sm:text-5xl font-extrabold tracking-tight my-4"
+            >
+              00:00:00
+            </div>
+          </div>
+          <div
+            class="flex items-center justify-between pt-4 border-t border-blue-500/30 text-xs text-blue-100"
+          >
+            <span id="location-status"
+              ><i class="fa-solid fa-location-dot mr-1"></i> Obtendo
+              localização...</span
+            >
+            <span
+              id="work-mode-badge"
+              class="font-semibold px-2 py-0.5 rounded bg-emerald-500 text-white"
+              >Online</span
+            >
+          </div>
+        </div>
+
+        <!-- Daily Summary Cards -->
+        <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div
+            class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between"
+          >
+            <div
+              class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2"
+            >
+              <span class="text-xs font-medium">Jornada Padrão</span>
+              <i class="fa-solid fa-bullseye text-blue-500"></i>
+            </div>
+            <div>
+              <span id="summary-target" class="text-2xl font-bold">08:00</span>
+              <span class="text-xs text-slate-400 block">Horas/dia</span>
+            </div>
+          </div>
+
+          <div
+            class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between"
+          >
+            <div
+              class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2"
+            >
+              <span class="text-xs font-medium">Trabalhadas</span>
+              <i class="fa-solid fa-business-time text-emerald-500"></i>
+            </div>
+            <div>
+              <span id="summary-worked" class="text-2xl font-bold">00:00</span>
+              <span class="text-xs text-slate-400 block">Acumuladas hoje</span>
+            </div>
+          </div>
+
+          <div
+            class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between"
+          >
+            <div
+              class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2"
+            >
+              <span class="text-xs font-medium">Pausas</span>
+              <i class="fa-solid fa-mug-hot text-amber-500"></i>
+            </div>
+            <div>
+              <span id="summary-breaks" class="text-2xl font-bold">00:00</span>
+              <span class="text-xs text-slate-400 block">Tempo total</span>
+            </div>
+          </div>
+
+          <div
+            class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between"
+          >
+            <div
+              class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2"
+            >
+              <span class="text-xs font-medium">Saldo Diário</span>
+              <i
+                id="balance-icon"
+                class="fa-solid fa-scale-balanced text-slate-400"
+              ></i>
+            </div>
+            <div>
+              <span
+                id="summary-balance"
+                class="text-2xl font-bold text-slate-700 dark:text-slate-200"
+                >00:00</span
+              >
+              <span
+                id="summary-balance-status"
+                class="text-xs text-slate-400 block"
+                >Neutro</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-200 dark:border-slate-700"
+      >
+        <h2 class="text-base font-semibold mb-4 flex items-center">
+          <i class="fa-solid fa-fingerprint mr-2 text-blue-500"></i> Registrar
+          Ponto
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Entrada -->
+          <button
+            onclick="registrarPonto('Entrada')"
+            id="btn-entrada"
+            class="group relative flex flex-col items-center justify-center p-5 rounded-xl border-2 border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-500 hover:text-white transition-all duration-200 text-emerald-700 dark:text-emerald-400"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 group-hover:bg-white/20 flex items-center justify-center mb-3 transition-colors"
+            >
+              <i class="fa-solid fa-right-to-bracket text-xl"></i>
+            </div>
+            <span class="font-bold text-base">Entrada</span>
+            <span class="text-xs opacity-75 mt-0.5">Iniciar expediente</span>
+          </button>
+
+          <!-- Pausa Início -->
+          <button
+            onclick="registrarPonto('Início Pausa')"
+            id="btn-pausa-inicio"
+            class="group relative flex flex-col items-center justify-center p-5 rounded-xl border-2 border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 hover:bg-amber-500 hover:text-white transition-all duration-200 text-amber-700 dark:text-amber-400"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 group-hover:bg-white/20 flex items-center justify-center mb-3 transition-colors"
+            >
+              <i class="fa-solid fa-mug-saucer text-xl"></i>
+            </div>
+            <span class="font-bold text-base">Início Pausa</span>
+            <span class="text-xs opacity-75 mt-0.5">Almoço ou Descanso</span>
+          </button>
+
+          <!-- Pausa Fim -->
+          <button
+            onclick="registrarPonto('Fim Pausa')"
+            id="btn-pausa-fim"
+            class="group relative flex flex-col items-center justify-center p-5 rounded-xl border-2 border-sky-500/30 bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-500 hover:text-white transition-all duration-200 text-sky-700 dark:text-sky-400"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-sky-100 dark:bg-sky-900/50 group-hover:bg-white/20 flex items-center justify-center mb-3 transition-colors"
+            >
+              <i class="fa-solid fa-utensils text-xl"></i>
+            </div>
+            <span class="font-bold text-base">Fim Pausa</span>
+            <span class="text-xs opacity-75 mt-0.5">Retornar ao trabalho</span>
+          </button>
+
+          <!-- Saída -->
+          <button
+            onclick="registrarPonto('Saída')"
+            id="btn-saida"
+            class="group relative flex flex-col items-center justify-center p-5 rounded-xl border-2 border-rose-500/30 bg-rose-50/50 dark:bg-rose-950/20 hover:bg-rose-500 hover:text-white transition-all duration-200 text-rose-700 dark:text-rose-400"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/50 group-hover:bg-white/20 flex items-center justify-center mb-3 transition-colors"
+            >
+              <i class="fa-solid fa-right-from-bracket text-xl"></i>
+            </div>
+            <span class="font-bold text-base">Saída</span>
+            <span class="text-xs opacity-75 mt-0.5">Finalizar expediente</span>
+          </button>
+        </div>
+      </div>
+
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden"
+      >
+        <!-- Tabs Header -->
+        <div
+          class="flex border-b border-slate-200 dark:border-slate-700 px-6 pt-4 space-x-6"
+        >
+          <button
+            onclick="switchTab('today')"
+            id="tab-today"
+            class="pb-3 font-semibold text-sm border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 transition-all"
+          >
+            <i class="fa-solid fa-calendar-day mr-1.5"></i> Registros de Hoje
+          </button>
+          <button
+            onclick="switchTab('history')"
+            id="tab-history"
+            class="pb-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-all"
+          >
+            <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Histórico
+            Completo
+          </button>
+        </div>
+
+        <!-- Tab Content: Today Records -->
+        <div id="content-today" class="p-6">
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4"
+          >
+            <div>
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200">
+                Linha do Tempo Diária
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Marcações efetuadas no dia corrente
+              </p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button
+                onclick="openManualModal()"
+                class="px-3.5 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-xl transition-all"
+              >
+                <i class="fa-solid fa-plus mr-1.5"></i> Adicionar Manual
+              </button>
+              <button
+                onclick="limparRegistrosHoje()"
+                class="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 text-rose-600 dark:text-rose-400 text-xs font-medium rounded-xl transition-all"
+              >
+                <i class="fa-solid fa-trash-can mr-1.5"></i> Limpar Hoje
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                >
+                  <th class="py-3 px-4">Tipo</th>
+                  <th class="py-3 px-4">Horário</th>
+                  <th class="py-3 px-4">Localização / IP</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody
+                id="today-table-body"
+                class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm"
+              >
+                <!-- Injetado via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="today-empty" class="hidden text-center py-12 text-slate-400">
+            <i class="fa-solid fa-clipboard-list text-4xl mb-3 opacity-50"></i>
+            <p class="text-sm">Nenhum registro de ponto efetuado hoje.</p>
+          </div>
+        </div>
+
+        <!-- Tab Content: Full History -->
+        <div id="content-history" class="p-6 hidden">
+          <div
+            class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4"
+          >
+            <div>
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200">
+                Relatório e Exportação
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Histórico acumulado de todos os dias salvos
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                onclick="exportarCSV()"
+                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-xl transition-all shadow-sm"
+              >
+                <i class="fa-solid fa-file-csv mr-1.5"></i> Exportar CSV
+              </button>
+              <button
+                onclick="exportarJSON()"
+                class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition-all shadow-sm"
+              >
+                <i class="fa-solid fa-file-code mr-1.5"></i> Exportar JSON
+              </button>
+              <button
+                onclick="limparTodoHistorico()"
+                class="px-3.5 py-2 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 text-rose-600 dark:text-rose-400 text-xs font-medium rounded-xl transition-all"
+              >
+                <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Apagar
+                Tudo
+              </button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr
+                  class="border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+                >
+                  <th class="py-3 px-4">Data</th>
+                  <th class="py-3 px-4">Entrada</th>
+                  <th class="py-3 px-4">Saída Pousa</th>
+                  <th class="py-3 px-4">Retorno Pousa</th>
+                  <th class="py-3 px-4">Saída</th>
+                  <th class="py-3 px-4">Trabalhadas</th>
+                  <th class="py-3 px-4">Saldo</th>
+                </tr>
+              </thead>
+              <tbody
+                id="history-table-body"
+                class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm"
+              >
+                <!-- Injetado via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div
+            id="history-empty"
+            class="hidden text-center py-12 text-slate-400"
+          >
+            <i class="fa-solid fa-folder-open text-4xl mb-3 opacity-50"></i>
+            <p class="text-sm">Nenhum histórico encontrado no armazenamento.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Success Toast Notification -->
+    <div
+      id="toast"
+      class="fixed bottom-5 right-5 z-50 transform translate-y-32 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border border-slate-700"
+    >
+      <div id="toast-icon" class="text-emerald-400 text-lg">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <h4 id="toast-title" class="font-semibold text-sm">Ponto Registrado</h4>
+        <p id="toast-desc" class="text-xs text-slate-400">
+          Horário salvo com sucesso.
+        </p>
+      </div>
+    </div>
+
+    <!-- Manual Entry Modal -->
+    <div
+      id="manual-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 m-4"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">
+            Adicionar Ponto Manual
+          </h3>
+          <button
+            onclick="closeManualModal()"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form
+          id="manual-form"
+          onsubmit="handleManualSubmit(event)"
+          class="space-y-4"
+        >
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1"
+              >Tipo de Registro</label
+            >
+            <select
+              id="manual-type"
+              class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+            >
+              <option value="Entrada">Entrada</option>
+              <option value="Início Pausa">Início Pausa</option>
+              <option value="Fim Pausa">Fim Pausa</option>
+              <option value="Saída">Saída</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1"
+              >Data</label
+            >
+            <input
+              type="date"
+              id="manual-date"
+              class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1"
+              >Horário</label
+            >
+            <input
+              type="time"
+              id="manual-time"
+              class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              onclick="closeManualModal()"
+              class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-xl transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-all shadow-md"
+            >
+              Salvar Registro
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div
+      id="settings-modal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200 dark:border-slate-700 m-4"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">
+            Configurações de Jornada
+          </h3>
+          <button
+            onclick="closeSettingsModal()"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        <form
+          id="settings-form"
+          onsubmit="handleSettingsSubmit(event)"
+          class="space-y-4"
+        >
+          <div>
+            <label
+              class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1"
+              >Jornada Diária Padrão (Horas)</label
+            >
+            <input
+              type="number"
+              step="0.5"
+              min="1"
+              max="16"
+              id="setting-target-hours"
+              class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              required
+            />
+          </div>
+          <div class="flex justify-end space-x-3 pt-2">
+            <button
+              type="button"
+              onclick="closeSettingsModal()"
+              class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-xl transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-all shadow-md"
+            >
+              Salvar Configurações
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script></script>
+  </body>
+</html>
